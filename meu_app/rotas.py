@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
-from app.servico_twilio import TwilioService
-from app.servico_supabase import SupabaseService
-from app.servico_calculos import CalculosService
+from meu_app.servico_twilio import TwilioService
+from meu_app.servico_supabase import SupabaseService
+from meu_app.servico_calculos import CalculosService
 
 bp = Blueprint("rotas", __name__)
 twilio_service = TwilioService()
