@@ -1,3 +1,9 @@
+import sys
+import os
+
+# Garante que o Python vai procurar módulos na raiz do projeto
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from meu_app import app  # importa o Flask da pasta meu_app
 
 if __name__ == "__main__":
