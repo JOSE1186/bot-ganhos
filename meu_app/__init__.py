@@ -1,9 +1,8 @@
 from flask import Flask
+from .rotas import registrar_rotas
 
-def create_app():
-    app = Flask(__name__)
+app = Flask(__name__)
+app.secret_key = "chave-secreta-super-segura"
 
-    from meu_app.rotas import bp as rotas_bp
-    app.register_blueprint(rotas_bp)
-
-    return app
+# Registrar todas as rotas
+registrar_rotas(app)
