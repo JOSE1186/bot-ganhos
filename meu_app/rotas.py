@@ -63,13 +63,18 @@ def registrar_rotas(app):
                 resultado = supabase.table("ganhos").insert({
                     "bruto": ganho,
                     "liquido": liquido
-                }).execute()
-
-                if resultado.status_code >= 400:
+                
+                })
+                .select("*")
+                .execute()
+                
+                
+            )
+            if resultado.status_code >= 400:
                     resposta.message("Erro ao salvar no banco. Tente novamente mais tarde.")
-                elif not resultado.data:
+              elif not resultado.data:
                     resposta.message("Erro: nenhum dado retornado do banco. Tente novamente.")
-                else: 
+               else: 
                     resposta.message("dados salvos com sucesso!.")
                     
                 session.clear()
