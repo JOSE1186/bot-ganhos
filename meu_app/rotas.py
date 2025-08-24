@@ -65,13 +65,13 @@ def registrar_rotas(app):
                     "liquido": liquido
                 }).execute()
 
-                if resultado.error and str(resultado.error).strip() != "":
+                if resultado.status_code >= 400:
                     resposta.message("Erro ao salvar no banco. Tente novamente mais tarde.")
                 elif not resultado.data:
                     resposta.message("Erro: nenhum dado retornado do banco. Tente novamente.")
-                else:
-                    resposta.message(f"Seu ganho líquido hoje é: R$ {liquido:.2f}")
-
+                else: resultado.data:
+                    resposta.message("dados salvos com sucesso!.")
+                    
                 session.clear()
             else:
                 resposta.message("Por favor, envie um número válido para o combustível.")
