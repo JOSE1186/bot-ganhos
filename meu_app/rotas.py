@@ -83,11 +83,9 @@ def registrar_rotas(app):
                         "bruto": ganho,
                         "liquido": liquido,
                         "combustivel": combustivel
-                    })
-                    .select("*")
-                    .execute()
-                )
-
+                    }).execute()
+                  
+            
                 # Verificar resultado do Supabase
                 if resultado.status_code >= 400:
                     resposta.message("❌ Erro ao salvar no banco. Tente novamente mais tarde.")
