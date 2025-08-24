@@ -67,14 +67,12 @@ def registrar_rotas(app):
                 })
                 .select("*")
                 .execute()
-                
-                
-            )
-            if resultado.status_code >= 400:
+             )
+              if resultado.status_code >= 400:
                     resposta.message("Erro ao salvar no banco. Tente novamente mais tarde.")
               elif not resultado.data:
                     resposta.message("Erro: nenhum dado retornado do banco. Tente novamente.")
-               else: 
+              else: 
                     resposta.message("dados salvos com sucesso!.")
                     
                 session.clear()
