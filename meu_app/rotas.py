@@ -83,7 +83,9 @@ def registrar_rotas(app):
                         "bruto": ganho,
                         "liquido": liquido,
                         "combustivel": combustivel
-                    }).execute()
+                    })
+                    .execute()
+                )
                   
             
                 # Verificar resultado do Supabase
