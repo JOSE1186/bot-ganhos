@@ -69,7 +69,7 @@ def registrar_rotas(app):
                     resposta.message("Erro ao salvar no banco. Tente novamente mais tarde.")
                 elif not resultado.data:
                     resposta.message("Erro: nenhum dado retornado do banco. Tente novamente.")
-                else: resultado.data:
+                else: 
                     resposta.message("dados salvos com sucesso!.")
                     
                 session.clear()
