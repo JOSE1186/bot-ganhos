@@ -60,34 +60,15 @@ def registrar_rotas(app):
             ganho = tentar_converter_para_float(msg)
             resposta = MessagingResponse()
             if ganho is not None:
-                session["ganho"] = ganho
-                resposta.message("Agora digite o valor gasto com combustível:")
-                session["estado"] = "aguardando_combustivel"
-            else:
-                resposta.message("Por favor, envie um número válido. Ex: 100 ou 100.50")
-            return str(resposta)
+                # Calcular líquido (ex: descontando 25%)
+                liquido = round(ganho * 0.75, 2)
 
-        # Receber o valor do combustível
-        elif session["estado"] == "aguardando_combustivel":
-            combustivel = tentar_converter_para_float(msg)
-            resposta = MessagingResponse()
+                # Salvar no Supabase sem coluna 'combustivel'
+                resultado = supabase.table("ganhos").insert({
+                    "bruto": ganho,
+                    "liquido": liquido
+                }).execute()
 
-            if combustivel is not None:
-                ganho = session.get("ganho", 0)
-                liquido = ganho - combustivel
-
-                # Inserir no banco e forçar retorno dos dados
-                resultado = (
-                    supabase.table("ganhos")
-                    .insert({
-                        "bruto": ganho,
-                        "liquido": liquido,
-                        "combustivel": combustivel
-                    })
-                    .execute()
-                )
-                  
-            
                 # Verificar resultado do Supabase
                 if resultado.status_code >= 400:
                     resposta.message("❌ Erro ao salvar no banco. Tente novamente mais tarde.")
@@ -97,14 +78,12 @@ def registrar_rotas(app):
                     resposta.message(
                         f"✅ Dados salvos com sucesso!\n"
                         f"💰 Bruto: R$ {ganho:.2f}\n"
-                        f"⛽ Combustível: R$ {combustivel:.2f}\n"
                         f"📉 Líquido: R$ {liquido:.2f}"
                     )
 
                 session.clear()
             else:
-                resposta.message("⚠️ Por favor, envie um número válido para o combustível.")
-
+                resposta.message("⚠️ Por favor, envie um número válido. Ex: 100 ou 100.50")
             return str(resposta)
 
         # Caso aconteça algo inesperado
