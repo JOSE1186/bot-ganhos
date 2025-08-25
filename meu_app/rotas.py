@@ -14,7 +14,7 @@ def registrar_rotas(app):
         resposta = MessagingResponse()
         msg = request.form.get("Body", "")
 
-        # Se o Twilio enviou requisição sem mensagem, evitar crash
+        # Evita crash se o Twilio enviar requisição sem mensagem
         if msg is None or msg.strip() == "":
             resposta.message("⚠️ Nenhuma mensagem recebida. Tente novamente.")
             return str(resposta)
@@ -81,19 +81,13 @@ def registrar_rotas(app):
             if combustivel is not None:
                 ganho = session.get("ganho", 0)
 
+                # INSERT no Supabase com correção para evitar JSONDecodeError
                 try:
-                    resultado = supabase.table("ganhos").insert({
+                    supabase.table("ganhos").insert({
                         "bruto": ganho,
                         "combustivel": combustivel
                     }).execute()
-
-                    # Verificação segura: se o retorno é vazio
-                    if not resultado or not hasattr(resultado, "data") or resultado.data is None:
-                        resposta.message("✅ Dados salvos com sucesso!")
-                    elif hasattr(resultado, "error") and resultado.error:
-                        resposta.message("❌ Erro ao salvar no banco. Tente novamente.")
-                    else:
-                        resposta.message("✅ Dados salvos com sucesso!")
+                    resposta.message("✅ Dados salvos com sucesso!")
                 except Exception as e:
                     resposta.message(f"❌ Erro inesperado ao salvar: {e}")
 
