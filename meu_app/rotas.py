@@ -11,14 +11,21 @@ def registrar_rotas(app):
 
     @app.route("/sms", methods=["POST"])
     def responder_sms():
-        msg = request.form.get("Body", "").strip()
         resposta = MessagingResponse()
+        msg = request.form.get("Body", "")
+
+        # Se o Twilio enviou requisição sem mensagem, evitar crash
+        if msg is None or msg.strip() == "":
+            resposta.message("⚠️ Nenhuma mensagem recebida. Tente novamente.")
+            return str(resposta)
+
+        msg = msg.strip()
 
         # Inicializa estado da sessão
         if "estado" not in session:
             session["estado"] = "inicio"
 
-        # Estado inicial → mostra o menu principal
+        # Estado inicial → mostra o menu
         if session["estado"] == "inicio":
             resposta.message("📌 MENU PRINCIPAL\n\n"
                              "1️⃣ Inserir ganho\n"
@@ -35,9 +42,9 @@ def registrar_rotas(app):
 
             elif msg == "2":
                 try:
-                    # Busca os dados no Supabase
                     dados = supabase.table("ganhos").select("bruto", "combustivel").execute()
 
+                    # Protege contra resposta vazia
                     if not dados or not hasattr(dados, "data") or not dados.data:
                         resposta.message("📌 Nenhum registro encontrado.")
                     else:
@@ -75,13 +82,12 @@ def registrar_rotas(app):
                 ganho = session.get("ganho", 0)
 
                 try:
-                    # Salva os dados no Supabase
                     resultado = supabase.table("ganhos").insert({
                         "bruto": ganho,
                         "combustivel": combustivel
                     }).execute()
 
-                    # Verifica se houve erro na resposta
+                    # Proteção extra contra respostas inválidas
                     if not resultado or hasattr(resultado, "error") and resultado.error:
                         resposta.message("❌ Erro ao salvar no banco. Tente novamente mais tarde.")
                     else:
