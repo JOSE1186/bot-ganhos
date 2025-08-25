@@ -12,74 +12,82 @@ def registrar_rotas(app):
     @app.route("/sms", methods=["POST"])
     def responder_sms():
         msg = request.form.get("Body", "").strip()
+        resposta = MessagingResponse()
+
+        # Inicializa o estado da sessão
         if "estado" not in session:
             session["estado"] = "inicio"
 
+        # Estado inicial -> mostra o menu
         if session["estado"] == "inicio":
-            resposta = MessagingResponse()
-            resposta.message("Olá! Digite 1 para inserir o ganho de hoje, 2 para ver saldo, 3 para sair.")
+            resposta.message("📌 MENU PRINCIPAL\n\n"
+                             "1️⃣ Inserir ganho\n"
+                             "2️⃣ Ver saldo\n"
+                             "3️⃣ Sair")
             session["estado"] = "menu"
             return str(resposta)
 
+        # Estado do menu -> decide a ação
         elif session["estado"] == "menu":
-            resposta = MessagingResponse()
             if msg == "1":
-                resposta.message("Digite o valor do seu ganho bruto:")
+                resposta.message("💰 Digite o valor do ganho bruto:")
                 session["estado"] = "aguardando_ganho"
+
             elif msg == "2":
-                dados = supabase.table("ganhos").select("bruto", "liquido").execute()
-                if not dados.data:
-                    resposta.message("Nenhum registro encontrado.")
+                # Busca os dados no Supabase
+                dados = supabase.table("ganhos").select("bruto", "combustivel").execute()
+
+                if not hasattr(dados, "data") or not dados.data:
+                    resposta.message("📌 Nenhum registro encontrado.")
                 else:
-                    total_bruto = sum(item.get("bruto", 0) for item in dados.data)
-                    total_liquido = sum(item.get("liquido", 0) for item in dados.data)
-                    resposta.message(f"🔢 Totais:\nBruto total: R$ {total_bruto:.2f}\nLíquido total: R$ {total_liquido:.2f}")
+                    total_liquido = sum(item.get("bruto", 0) - item.get("combustivel", 0) for item in dados.data)
+                    resposta.message(f"📊 Ganho líquido total: R$ {total_liquido:.2f}")
+
                 session["estado"] = "inicio"
+
             elif msg == "3":
-                resposta.message("Bot encerrado. Até logo!")
+                resposta.message("✅ Bot encerrado. Até logo!")
                 session.clear()
+
             else:
-                resposta.message("Opção inválida. Digite 1, 2 ou 3.")
+                resposta.message("⚠️ Opção inválida! Digite 1, 2 ou 3.")
             return str(resposta)
 
+        # Estado aguardando ganho bruto
         elif session["estado"] == "aguardando_ganho":
             ganho = tentar_converter_para_float(msg)
-            resposta = MessagingResponse()
             if ganho is not None:
                 session["ganho"] = ganho
-                resposta.message("Agora digite o valor gasto com combustível:")
+                resposta.message("⛽ Agora digite o valor gasto com combustível:")
                 session["estado"] = "aguardando_combustivel"
             else:
-                resposta.message("Por favor, envie um número válido. Ex: 100 ou 100.50")
+                resposta.message("⚠️ Por favor, envie um número válido. Exemplo: 100 ou 100.50")
             return str(resposta)
 
+        # Estado aguardando combustível
         elif session["estado"] == "aguardando_combustivel":
             combustivel = tentar_converter_para_float(msg)
-            resposta = MessagingResponse()
             if combustivel is not None:
                 ganho = session.get("ganho", 0)
-                liquido = ganho - combustivel
 
+                # Salva os dados no Supabase
                 resultado = supabase.table("ganhos").insert({
                     "bruto": ganho,
-                    "liquido": liquido
+                    "combustivel": combustivel
                 }).execute()
 
-                # Verificação aprimorada do resultado
-                if resultado.error and str(resultado.error).strip() != "":
-                    resposta.message("Erro ao salvar no banco. Tente novamente mais tarde.")
-                elif not resultado.data:
-                    resposta.message("Erro: nenhum dado retornado do banco. Tente novamente.")
+                if hasattr(resultado, "error") and resultado.error:
+                    resposta.message("❌ Erro ao salvar no banco. Tente novamente mais tarde.")
                 else:
-                    resposta.message(f"Seu ganho líquido hoje é: R$ {liquido:.2f}")
+                    resposta.message("✅ Dados salvos com sucesso!")
 
                 session.clear()
             else:
-                resposta.message("Por favor, envie um número válido para o combustível.")
+                resposta.message("⚠️ Por favor, envie um número válido para o combustível.")
             return str(resposta)
 
+        # Caso inesperado, reseta a sessão
         else:
-            resposta = MessagingResponse()
-            resposta.message("Erro inesperado. Vamos recomeçar.")
+            resposta.message("⚠️ Erro inesperado. Vamos recomeçar.")
             session.clear()
             return str(resposta)
