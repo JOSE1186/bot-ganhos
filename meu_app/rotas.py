@@ -41,18 +41,16 @@ def registrar_rotas(app):
                 session["estado"] = "aguardando_ganho"
 
             elif msg == "2":
-                try:
-                    dados = supabase.table("ganhos").select("bruto", "combustivel").execute()
+                # Consulta direta ao Supabase, sem try/except
+                dados = supabase.table("ganhos").select("bruto", "combustivel").execute()
 
-                    # Se o retorno for vazio
-                    if not dados or not hasattr(dados, "data") or not dados.data:
-                        resposta.message("📌 Nenhum registro encontrado.")
-                    else:
-                        total_liquido = sum(item.get("bruto", 0) - item.get("combustivel", 0)
-                                            for item in dados.data)
-                        resposta.message(f"📊 Ganho líquido total: R$ {total_liquido:.2f}")
-                except Exception as e:
-                    resposta.message(f"❌ Erro inesperado ao buscar saldo: {e}")
+                # Se o retorno for vazio
+                if not dados or not hasattr(dados, "data") or not dados.data:
+                    resposta.message("📌 Nenhum registro encontrado.")
+                else:
+                    total_liquido = sum(item.get("bruto", 0) - item.get("combustivel", 0)
+                                        for item in dados.data)
+                    resposta.message(f"📊 Ganho líquido total: R$ {total_liquido:.2f}")
 
                 session["estado"] = "inicio"
 
@@ -81,14 +79,14 @@ def registrar_rotas(app):
             if combustivel is not None:
                 ganho = session.get("ganho", 0)
 
-                # INSERT no Supabase com correção para evitar JSONDecodeError
-                try:
-                    supabase.table("ganhos").insert({
-                        "bruto": ganho,
-                        "combustivel": combustivel
-                    }).execute()
-                    resposta.message("✅ Dados salvos com sucesso!")
-                    session.clear()
+                # INSERT direto no Supabase, sem try/except
+                supabase.table("ganhos").insert({
+                    "bruto": ganho,
+                    "combustivel": combustivel
+                }).execute()
+
+                resposta.message("✅ Dados salvos com sucesso!")
+                session.clear()
             else:
                 resposta.message("⚠️ Por favor, envie um número válido para o combustível.")
             return str(resposta)
