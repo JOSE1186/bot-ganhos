@@ -88,8 +88,7 @@ def registrar_rotas(app):
                         "combustivel": combustivel
                     }).execute()
                     resposta.message("✅ Dados salvos com sucesso!")
-                except Exception as e:
-                    resposta.message(f"❌ Erro inesperado ao salvar: {e}")
+                
 
                 session.clear()
             else:
