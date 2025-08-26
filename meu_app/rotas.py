@@ -41,8 +41,11 @@ def registrar_rotas(app):
                 session["estado"] = "aguardando_ganho"
 
             elif msg == "2":
-                # Consulta direta ao Supabase, sem try/except
-                dados = supabase.table("ganhos").select("bruto", "combustivel").execute()
+                # Consulta ao Supabase — se der erro, ignora e segue
+                try:
+                    dados = supabase.table("ganhos").select("bruto", "combustivel").execute()
+                except:
+                    dados = None
 
                 # Se o retorno for vazio
                 if not dados or not hasattr(dados, "data") or not dados.data:
@@ -79,11 +82,14 @@ def registrar_rotas(app):
             if combustivel is not None:
                 ganho = session.get("ganho", 0)
 
-                # INSERT direto no Supabase, sem try/except
-                supabase.table("ganhos").insert({
-                    "bruto": ganho,
-                    "combustivel": combustivel
-                }).execute()
+                # INSERT no Supabase — se der erro, ignora e continua
+                try:
+                    supabase.table("ganhos").insert({
+                        "bruto": ganho,
+                        "combustivel": combustivel
+                    }).execute()
+                except:
+                    pass
 
                 resposta.message("✅ Dados salvos com sucesso!")
                 session.clear()
