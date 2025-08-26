@@ -88,9 +88,7 @@ def registrar_rotas(app):
                         "combustivel": combustivel
                     }).execute()
                     resposta.message("✅ Dados salvos com sucesso!")
-                
-
-                session.clear()
+                    session.clear()
             else:
                 resposta.message("⚠️ Por favor, envie um número válido para o combustível.")
             return str(resposta)
